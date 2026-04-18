@@ -1,9 +1,7 @@
 import Property from '../models/property.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { generateDescription } from '../services/ai.service.js';
 
-// @desc    Create a new property
-// @route   POST /api/properties
-// @access  Private (Agent only)
 export const createProperty = asyncHandler(async (req, res) => {
     const {
         size,
@@ -15,10 +13,22 @@ export const createProperty = asyncHandler(async (req, res) => {
         subcity,
         woreda,
         kebele,
+        specialName,
         description,
         bedrooms,
         bathrooms
     } = req.body;
+
+    const generatedAiDescription = await generateDescription({
+        type: listingType,
+        subcity,
+        woreda,
+        kebele,
+        size,
+        floor,
+        price,
+        specialName: specialName || "this property"
+    })
 
     const property = await Property.create({
         agent: req.user._id,
@@ -31,7 +41,9 @@ export const createProperty = asyncHandler(async (req, res) => {
         subcity,
         woreda,
         kebele,
+        specialName,
         description,
+        aiDescription: generatedAiDescription,
         bedrooms,
         bathrooms
     });
@@ -39,9 +51,7 @@ export const createProperty = asyncHandler(async (req, res) => {
     res.status(201).json(property);
 });
 
-// @desc    Get all properties with filtering
-// @route   GET /api/properties
-// @access  Public (with optional auth)
+
 export const getProperties = asyncHandler(async (req, res) => {
     const {
         minPrice,
@@ -108,9 +118,7 @@ export const getProperties = asyncHandler(async (req, res) => {
     });
 });
 
-// @desc    Get single property by ID
-// @route   GET /api/properties/:id
-// @access  Public (with optional auth)
+
 export const getPropertyById = asyncHandler(async (req, res) => {
     const property = await Property.findById(req.params.id).populate('agent', 'name email phone');
 
@@ -128,9 +136,7 @@ export const getPropertyById = asyncHandler(async (req, res) => {
     res.json(propertyObj);
 });
 
-// @desc    Update property
-// @route   PUT /api/properties/:id
-// @access  Private (Owner only)
+
 export const updateProperty = asyncHandler(async (req, res) => {
     const property = await Property.findById(req.params.id);
 
@@ -178,9 +184,7 @@ export const updateProperty = asyncHandler(async (req, res) => {
     res.json(updatedProperty);
 });
 
-// @desc    Delete property
-// @route   DELETE /api/properties/:id
-// @access  Private (Owner only)
+
 export const deleteProperty = asyncHandler(async (req, res) => {
     const property = await Property.findById(req.params.id);
 
