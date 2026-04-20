@@ -1,6 +1,7 @@
 import express from 'express';
 import authRoutes from "./routes/auth.routes.js";
 import bookmarkRoutes from "./routes/bookmark.routes.js";
+import propertyRoutes from "./routes/property.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import propertyRoutes from "./routes/property.routes.js";
 import { errorHandler } from "./middleware/error.middleware.js";
@@ -19,6 +20,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
+app.use('/api/property', propertyRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/property', propertyRoutes);
@@ -51,11 +53,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Health check
 
 app.use (errorHandler);
-app.use(helmet());
-app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  }));
+
 app.get('/health', (req, res) => {
     res.status(200).json({ 
         status: 'success',
