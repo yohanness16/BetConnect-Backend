@@ -1,5 +1,7 @@
 import User from "../models/User.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { sendApprovalEmail } from "../services/emailService.js";
+
 
 // Get pending agents
 export const getPendingAgents = asyncHandler(async (req, res) => {
