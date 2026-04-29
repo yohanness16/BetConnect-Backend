@@ -1,9 +1,19 @@
 import Property from '../models/property.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { generateDescription } from '../services/ai.service.js';
+import { checkImageAuthenticity } from '../services/aiImage.service.js';
 
 export const createProperty = asyncHandler(async (req, res) => {
     const imagePaths = req.files ? req.files.map(file => file.path.replace(/\\/g, '/')) : [];
+    let isFlagged = false;
+    if (req.files && req.files.length > 0) {
+        const firstImageBuffer = await fs.promises.readFile(req.files[0].path);
+        const detection = await checkImageAuthenticity(firstImageBuffer);
+        if (detection.isFake) {
+            isFlagged = true;
+            console.warn(`Image flagged as AI-generated with score ${detection.score}`);
+        }}
+
     const {
         size,
         type,
