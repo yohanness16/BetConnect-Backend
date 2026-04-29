@@ -1,39 +1,29 @@
-// Service: AI Image generation helper
-// Expects two env vars to be present when used:
-// - AI_IMAGE_API_URL: endpoint for the image generation API
-// - AI_IMAGE_API_KEY: bearer/api key for the provider
+import axios from "axios";
 
-export const generateAIImage = async (prompt, options = {}) => {
-  const endpoint = process.env.AI_IMAGE_API_URL;
-  const apiKey = process.env.AI_IMAGE_API_KEY;
+export const checkImageAuthenticity = async (imageBuffer) => {
+  try {
+    const response = await axios.post(
+      "https://api-inference.huggingface.co/models/dima806/ai_vs_real_image_detection",
+      imageBuffer,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.HF_API_KEY}`,
+          "Content-Type": "application/octet-stream",
+        },
+      }
+    );
+   const aiScore = response.data.find(item => item.label === "FAKE")?.score || 0;
+   return {
+      isFake: aiScore > 0.8,
+      score : aiScore
+   };
+  }  catch (error){
+    console.error("Error checking image authenticity:", error);
 
-  if (!endpoint || !apiKey) {
-    throw new Error('AI image generation is not configured (AI_IMAGE_API_URL/AI_IMAGE_API_KEY).');
+
+    return {    
+      isFake: false,
+      score: 0
+    };
   }
-
-  const body = {
-    prompt,
-    ...options,
-  };
-
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`AI image API error: ${res.status} ${res.statusText} - ${text}`);
-  }
-
-  const data = await res.json();
-
-  // Return the provider response as-is but prefer common fields when available.
-  return data.url || data?.data?.[0]?.url || data;
 };
-
-export default generateAIImage;
